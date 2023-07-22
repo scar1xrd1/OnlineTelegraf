@@ -175,7 +175,10 @@ namespace OnlineTelegraf
 
         public void SignalCallback(int tick, int senderID)
         {
-            
+            // this.tick = tick
+            //timerToStop = true;
+            //tickToStop = 0;
+            //PlaySound();
         }
 
         public void MsgCallback(string msg, int senderID)
