@@ -22,7 +22,7 @@ namespace WCF_Morze
                 operationContext = OperationContext.Current
             };
 
-            SendMsg($"{user.Name} подключился к телеграфу!", 0);
+            SendMsg($" {user.Name} подключился к телеграфу!", 0);
             users.Add(user);
 
             return user.ID;
@@ -34,7 +34,7 @@ namespace WCF_Morze
 
             if(user != null)
             {
-                SendMsg($"{user.Name} покинул телеграф!", 0);
+                SendMsg($" {user.Name} покинул телеграф!", 0);
                 users.Remove(user);               
             }
         }
@@ -49,13 +49,17 @@ namespace WCF_Morze
                 if (user != null) answer += $" | {user.Name}: ";
                 answer += msg;
 
-                item.operationContext.GetCallbackChannel<IServerMorzeCallback>().MsgCallback(answer, user.ID);
+                if (user != null) item.operationContext.GetCallbackChannel<IServerMorzeCallback>().MsgCallback(answer, user.ID);
+                else item.operationContext.GetCallbackChannel<IServerMorzeCallback>().MsgCallback(answer, 0);
             }
         }
 
         public void SendSignal(int tick, int senderID)
         {
-            
+            foreach (var item in users)
+            {
+                item.operationContext.GetCallbackChannel<IServerMorzeCallback>().SignalCallback(tick, senderID);
+            }
         }
     }
 }

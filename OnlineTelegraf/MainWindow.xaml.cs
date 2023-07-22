@@ -127,9 +127,11 @@ namespace OnlineTelegraf
                 SetImage("Images/Telegraf.png");
 
                 StopSound();
-            }
-           
 
+                if (client != null) client.SendSignal(tick, ID);
+            }
+
+           
             //Thread.Sleep(100);
 
             //timerToStop = true;
@@ -175,15 +177,24 @@ namespace OnlineTelegraf
 
         public void SignalCallback(int tick, int senderID)
         {
-            // this.tick = tick
-            //timerToStop = true;
-            //tickToStop = 0;
-            //PlaySound();
+            //if(senderID != ID)
+            //{
+            if(senderID != ID)
+            {
+                this.tick = tick;
+                lblTIck.Content = this.tick.ToString();
+                timerToStop = true;
+                tickToStop = 0;
+                PlaySound();
+            }
+              
+            //}            
         }
 
         public void MsgCallback(string msg, int senderID)
         {
             lbChat.Items.Add(msg);
+            lbChat.ScrollIntoView(lbChat.Items[lbChat.Items.Count - 1]);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
