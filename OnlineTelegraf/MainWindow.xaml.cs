@@ -12,13 +12,18 @@ namespace OnlineTelegraf
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, ServiceMorze.IServiceMorzeCallback
     {
+        bool isConnected = false;
+        ServiceMorze.ServiceMorzeClient client;
+        int ID;
+
         WaveOutEvent waveOut;
         DispatcherTimer timer;
 
         int tick; int tickToStop = 0;
         bool timerToStop = false;
+        bool canBeep = true;
 
         public MainWindow()
         {
@@ -106,17 +111,24 @@ namespace OnlineTelegraf
 
         private void Window_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            SetImage("Images/TelegrafBeep.png");
+            if(canBeep)
+            {
+                SetImage("Images/TelegrafBeep.png");
 
-            tick = 0;
-            PlaySound();
+                tick = 0;
+                PlaySound();
+            }           
         }
 
         private void Window_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            SetImage("Images/Telegraf.png");
+            if(canBeep)
+            {
+                SetImage("Images/Telegraf.png");
 
-            StopSound();
+                StopSound();
+            }
+           
 
             //Thread.Sleep(100);
 
@@ -128,6 +140,64 @@ namespace OnlineTelegraf
         private void btnGiveControl_Click(object sender, RoutedEventArgs e)
         {
             btnGiveControl.IsEnabled = false;
+            canBeep = false;
+        }
+
+        void ConnectUser()
+        {
+            if (!isConnected)
+            {
+                client = new ServiceMorze.ServiceMorzeClient(new System.ServiceModel.InstanceContext(this));
+                ID = client.Connect(tbUsername.Text);
+                tbUsername.IsEnabled = false;
+                btnConnect.Content = "Отключиться";
+                isConnected = true;
+            }
+        }
+
+        void DisconnectUser()
+        {
+            if(isConnected)
+            {
+                client.Disconnect(ID);
+                client = null;
+                tbUsername.IsEnabled = true;
+                btnConnect.Content = "Подключиться";
+                isConnected = false;
+            }
+        }
+
+        private void btnConnect_Click(object sender, RoutedEventArgs e)
+        {
+            if(isConnected) DisconnectUser();
+            else ConnectUser();
+        }
+
+        public void SignalCallback(int tick, int senderID)
+        {
+            
+        }
+
+        public void MsgCallback(string msg, int senderID)
+        {
+            lbChat.Items.Add(msg);
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            DisconnectUser();
+        }
+
+        private void tbChat_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                if(client != null)
+                {
+                    client.SendMsg(tbChat.Text, ID);
+                    tbChat.Text = string.Empty;
+                }             
+            }
         }
     }
 }
